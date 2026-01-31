@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useRaceStore } from '@/store/useRaceStore';
+import { useTerritoryStore } from '@/store/useTerritoryStore';
 
 export default function TacticalMap() {
     const mapRef = useRef<HTMLDivElement>(null);
@@ -14,7 +15,9 @@ export default function TacticalMap() {
 
     // Store Actions
     const { userPos, ghostPos, pathHistory, inZone, activeRunners, moveTo } = useRaceStore();
+    const { ownerFaction, leadingFaction, zoneLevel, isOvertime } = useTerritoryStore(); // Connect Territory Store
 
+    // Initialize Map
     useEffect(() => {
         if (!mapRef.current || mapInstance.current) return;
 
@@ -68,9 +71,10 @@ export default function TacticalMap() {
             [37.5670, 126.9790], [37.5690, 126.9790],
             [37.5690, 126.9820], [37.5670, 126.9820]
         ];
+        // Initial Style
         const zonePoly = L.polygon(territoryCoords, {
-            color: '#FF00FF',
-            fillColor: '#FF00FF',
+            color: '#333',
+            fillColor: '#333',
             fillOpacity: 0.1,
             weight: 1
         }).addTo(map);
@@ -111,26 +115,51 @@ export default function TacticalMap() {
             });
         }
 
-        // ... (Path & Zone updates)
-
         // Update Path
-        // Convert Coordinate[] to LatLng tuples
         const latLngs = pathHistory.map(p => [p.lat, p.lng] as [number, number]);
         path.setLatLngs(latLngs);
 
-        // Zone Interaction (Visual Breach)
-        if (inZone) {
-            zone.setStyle({ color: '#00FFFF', fillColor: '#00FFFF', weight: 3 });
-        } else {
-            zone.setStyle({ color: '#FF00FF', fillColor: '#FF00FF', weight: 1 });
+        // --- TERRITORY VISUALIZATION ---
+        // 1. Determine Base Color based on Owner
+        const baseColor = ownerFaction === 'NEON' ? '#00FFFF' : '#FF00FF'; // Cyan vs Pink
+        const leaderColor = leadingFaction === 'NEON' ? '#00FFFF' : '#FF00FF';
+
+        // 2. Dynamic Style
+        // If "In Zone", we brighten it.
+        // If "Overtime", we make it pulse aggressively (weight change).
+
+        let weight = 1;
+        let opacity = 0.1;
+        let dashArray: string | undefined = undefined;
+
+        if (isOvertime) {
+            weight = 5;
+            opacity = 0.3;
+            dashArray = '5, 10'; // Dotted line for tension
+        } else if (inZone) {
+            weight = 3;
+            opacity = 0.2;
         }
+
+        zone.setStyle({
+            color: baseColor,
+            fillColor: leadingFaction ? leaderColor : baseColor, // Pulse with leader color if changing hands
+            fillOpacity: opacity,
+            weight: weight,
+            dashArray: dashArray
+        });
+
+        // CSS Class for Glow (Requires access to the internal path element, difficult in pure Leaflet JS object)
+        // workaround: We rely on the SVG renderer.
+        // For "Breathing" effect, we can toggle opacity or weight via requestAnimationFrame in a real game loop,
+        // but here we rely on React state triggers.
 
         // Auto Center
         if (autoCenter) {
             mapInstance.current.panTo([userPos.lat, userPos.lng], { animate: true, duration: 0.5 });
         }
 
-    }, [userPos, ghostPos, pathHistory, inZone, autoCenter]);
+    }, [userPos, ghostPos, pathHistory, inZone, autoCenter, ownerFaction, leadingFaction, isOvertime]);
 
     return (
         <div className="w-full h-full min-h-screen bg-black relative">

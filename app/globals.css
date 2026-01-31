@@ -29,6 +29,32 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes critical-pulse {
+  0% {
+    stroke-width: 1;
+    stroke-opacity: 0.5;
+  }
+
+  50% {
+    stroke-width: 5;
+    stroke-opacity: 1;
+  }
+
+  100% {
+    stroke-width: 1;
+    stroke-opacity: 0.5;
+  }
+}
+
+.leaflet-interactive.overtime-zone {
+  animation: critical-pulse 0.5s infinite alternate;
+}
+
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
 /* Custom Utilities */
 .neon-text-cyan {
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);

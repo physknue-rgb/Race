@@ -7,6 +7,7 @@ interface TerritoryState {
     zoneId: string;
     ownerFaction: 'NEON' | 'ROSE' | null; // Yesterday's Winner (Base Color)
     leadingFaction: 'NEON' | 'ROSE' | null; // Today's Leader
+    zoneLevel: 1 | 2 | 3;
     dominanceScore: {
         NEON: number;
         ROSE: number;
@@ -34,6 +35,7 @@ export const useTerritoryStore = create<TerritoryState>((set, get) => ({
     zoneId: 'ZONE_01_SEOUL_HALL',
     ownerFaction: 'ROSE', // Example: Rose won yesterday
     leadingFaction: 'NEON', // Example: Neon is winning today
+    zoneLevel: 1,
     dominanceScore: {
         NEON: 4500,
         ROSE: 3200
