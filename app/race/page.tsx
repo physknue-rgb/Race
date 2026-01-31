@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Zap, ShieldAlert, Award } from 'lucide-react';
 import { useAudioStore } from '@/store/useAudioStore';
 import Link from 'next/link';
+import BottomNav from '@/components/BottomNav';
 
 // Lazy Load Map (SSR Disable)
 const TacticalMap = dynamic(() => import('@/components/TacticalMap'), {
