@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { auth, googleProvider, signInWithPopup, firebaseSignOut, db } from '@/services/FirebaseService';
+import { auth, googleProvider, appleProvider, signInWithPopup, firebaseSignOut, db } from '@/services/FirebaseService';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -20,6 +20,8 @@ interface AuthState {
 
     // Actions
     loginWithGoogle: () => Promise<void>;
+    loginWithApple: () => Promise<void>;
+    handleLoginSuccess: (user: any) => Promise<void>;
     logout: () => Promise<void>;
     checkSession: () => void;
     updateProfile: (nickname: string, team: 'NEON' | 'ROSE') => Promise<void>;
@@ -64,35 +66,41 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-
-            // Check if user exists in Firestore
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-
-            if (!userSnap.exists()) {
-                // First time user, save basic info but mark onboarding incomplete
-                await setDoc(userRef, {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    onboardingComplete: false,
-                    createdAt: Date.now()
-                });
-            } else {
-                const data = userSnap.data();
-                // Check if already completed onboarding
-                if (data.onboardingComplete) {
-                    // Will be updated by onAuthStateChanged listener usually, but we can optimistically set?
-                    // Relying on listener for now.
-                }
-            }
-
+            await get().handleLoginSuccess(result.user);
         } catch (error: any) {
-            console.error("Login Failed", error);
+            console.error("Google Login Failed", error);
             set({ error: error.message, isLoading: false });
         }
+    },
+
+    loginWithApple: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const result = await signInWithPopup(auth, appleProvider);
+            await get().handleLoginSuccess(result.user);
+        } catch (error: any) {
+            console.error("Apple Login Failed", error);
+            set({ error: error.message, isLoading: false });
+        }
+    },
+
+    handleLoginSuccess: async (user: User) => {
+        // Check if user exists in Firestore
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            // First time user
+            await setDoc(userRef, {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                onboardingComplete: false,
+                createdAt: Date.now()
+            });
+        }
+        set({ isLoading: false });
     },
 
     logout: async () => {

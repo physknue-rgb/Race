@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, onSnapshot, query, Timestamp } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 
 // Types
 export interface RemoteRunner {
@@ -26,8 +26,9 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
 
-export { db, auth, googleProvider, signInWithPopup, firebaseSignOut };
+export { db, auth, googleProvider, appleProvider, signInWithPopup, firebaseSignOut };
 
 class FirebaseService {
     isConfigured() {
