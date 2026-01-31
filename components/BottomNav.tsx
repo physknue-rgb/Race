@@ -16,7 +16,7 @@ export default function BottomNav() {
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 w-full bg-[#0F172A]/90 backdrop-blur-lg border-t border-white/5 px-6 py-4 flex justify-between items-center z-40">
+        <nav className="fixed bottom-0 left-0 w-full bg-[#0F172A]/90 backdrop-blur-lg border-t border-white/5 px-6 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex justify-between items-center z-40">
             {navItems.map((item, i) => {
                 const isActive = pathname === item.href;
                 return (
@@ -25,7 +25,7 @@ export default function BottomNav() {
                             <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                             <span className="text-[9px] font-bold tracking-widest">{item.label}</span>
                             {isActive && (
-                                <div className="absolute bottom-1 w-1 h-1 bg-neon-cyan rounded-full shadow-[0_0_5px_#00FFFF]" />
+                                <div className="absolute bottom-[calc(0.5rem+env(safe-area-inset-bottom))] w-1 h-1 bg-neon-cyan rounded-full shadow-[0_0_5px_#00FFFF]" />
                             )}
                         </div>
                     </Link>

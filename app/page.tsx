@@ -1,120 +1,101 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
+import { Zap, ShieldCheck, Gamepad2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Play, TrendingUp, Shield, Globe, Lock } from 'lucide-react';
-import Link from 'next/link';
 
-export default function Home() {
-  const [email, setEmail] = useState('');
+export default function LandingPage() {
+  const { user, loginWithGoogle, checkSession, isLoading } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      if (user.onboardingComplete) {
+        router.push('/dashboard');
+      } else {
+        router.push('/onboarding');
+      }
+    }
+  }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-neon-navy text-white relative overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-neon-cyan/20 blur-[120px] rounded-full mix-blend-screen" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-neon-pink/20 blur-[120px] rounded-full mix-blend-screen" />
+    <div className="min-h-screen bg-black text-white overflow-hidden relative flex flex-col items-center justify-center">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 z-0"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neon-cyan/20 blur-[120px] rounded-full z-0"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-neon-pink/20 blur-[120px] rounded-full z-0"></div>
 
-      {/* Navbar */}
-      <nav className="relative z-10 flex items-center justify-between px-8 py-6 glass-panel border-b-0 border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-neon-cyan rounded-sm shadow-[0_0_10px_#00FFFF]" />
-          <span className="text-2xl font-black tracking-tighter italic">LIVE RACE</span>
-        </div>
-        <div className="flex items-center gap-6 text-sm font-bold tracking-widest text-gray-400">
-          <span className="hover:text-neon-cyan cursor-pointer transition-colors">LEADERBOARD</span>
-          <span className="hover:text-neon-pink cursor-pointer transition-colors">SPONSORS</span>
-          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-            <Globe size={14} />
-            <span className="text-white">EN / KR</span>
-          </div>
-          <Link href="/dashboard">
-            <button className="px-4 py-2 bg-neon-pink text-black font-black italic -skew-x-6 hover:scale-105 transition-transform">
-              LOGIN
-            </button>
-          </Link>
-        </div>
-      </nav>
+      <div className="z-10 flex flex-col items-center text-center p-6 w-full max-w-lg">
 
-      {/* Hero Section */}
-      <main className="relative z-10 container mx-auto px-8 pt-32 pb-20">
+        {/* Logo & Headline */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mb-12"
         >
-          <div className="flex items-center gap-4 mb-4">
-            <span className="px-3 py-1 bg-neon-cyan/10 border border-neon-cyan text-neon-cyan text-xs font-bold tracking-[0.2em] rounded">BETA ACCESS</span>
-            <span className="text-gray-400 text-xs tracking-widest flex items-center gap-1"><Shield size={12} /> SECURE LOCATION CORE</span>
-          </div>
-
-          <h1 className="text-8xl font-black tracking-tighter leading-[0.9] mb-8 italic">
-            OWN YOUR <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-white neon-text-cyan">STREETS.</span>
+          <h2 className="text-neon-cyan text-sm font-bold tracking-[0.5em] mb-2 animate-pulse">SYSTEM ONLINE</h2>
+          <h1 className="text-7xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-white drop-shadow-[0_0_15px_rgba(0,255,255,0.8)]">
+            LIVE<br />RACE
           </h1>
-
-          <p className="text-xl text-gray-400 max-w-xl mb-12 leading-relaxed">
-            The world is your track. Compete in real-time territory battles, unlock sponsored gear, and become a legend in your neighborhood.
-          </p>
-
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard">
-              <button className="group relative px-8 py-4 bg-neon-cyan text-black font-black text-lg italic tracking-wider -skew-x-6 hover:bg-white transition-colors overflow-hidden">
-                <span className="relative z-10 flex items-center gap-2">
-                  START RUNNING <Play fill="black" size={16} />
-                </span>
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              </button>
-            </Link>
-
-            <div className="flex items-center gap-2 px-6 py-4 glass-panel rounded -skew-x-6 cursor-pointer hover:border-neon-pink/50 transition-colors">
-              <Lock size={18} className="text-neon-pink" />
-              <span className="font-bold text-sm tracking-widest">VAULT: 0 GP</span>
-            </div>
-          </div>
         </motion.div>
 
-        {/* HUD Preview Mockup */}
+        {/* Features (Mobile Cards) */}
         <motion.div
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="absolute top-20 right-0 w-[500px] aspect-[9/16] glass-panel border-neon-cyan/30 rounded-3xl p-4 overflow-hidden hidden xl:block"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="grid grid-cols-1 gap-4 w-full mb-12"
         >
-          <div className="relative w-full h-full bg-black rounded-2xl overflow-hidden">
-            {/* Fake Map */}
-            <div className="absolute inset-0 opacity-50">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-neon-cyan rounded-full animate-ping" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_20px_#00FFFF]" />
+          <div className="bg-white/5 border border-white/10 p-4 rounded-xl flex items-center gap-4 backdrop-blur-sm">
+            <div className="w-10 h-10 rounded-full bg-neon-cyan/20 flex items-center justify-center text-neon-cyan">
+              <Gamepad2 size={20} />
             </div>
-            {/* HUD Elements */}
-            <div className="absolute top-8 left-0 right-0 flex justify-center">
-              <div className="px-4 py-2 bg-black/80 border border-neon-pink/50 rounded-full flex items-center gap-3">
-                <span className="text-neon-pink font-bold text-xs">RIVAL NEARBY</span>
-                <span className="text-white font-mono font-bold">120m</span>
-              </div>
-            </div>
-            <div className="absolute bottom-8 left-6">
-              <div className="text-4xl font-black italic text-white flex items-baseline gap-1">
-                4<span className="text-lg text-gray-400">’</span>28<span className="text-lg text-gray-400">”</span>
-              </div>
-              <div className="text-xs text-neon-cyan font-bold tracking-widest">CURRENT PACE</div>
+            <div className="text-left">
+              <h3 className="text-white font-bold text-sm">Real-world RPG</h3>
+              <p className="text-gray-400 text-xs">Run your city, conquer territories.</p>
             </div>
           </div>
         </motion.div>
-      </main>
 
-      {/* Footer / Ticker */}
-      <footer className="fixed bottom-0 left-0 w-full glass-panel border-t border-white/5 py-3">
-        <div className="flex gap-12 whitespace-nowrap animate-marquee">
-          {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="flex items-center gap-2 text-xs font-mono text-neon-cyan/50">
-              <TrendingUp size={12} />
-              <span>USER_882 JUST CAPTURED [APEX_ZONE_0{i}]</span>
-            </div>
-          ))}
-        </div>
-      </footer>
+        {/* Login Button */}
+        <motion.button
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => loginWithGoogle()}
+          disabled={isLoading}
+          className="w-full bg-white text-black font-black text-lg py-4 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.5)] flex items-center justify-center gap-3 relative overflow-hidden group"
+        >
+          {/* Shimmer Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover:animate-shimmer" />
+
+          {isLoading ? (
+            <span>SYSTEM SYNCING...</span>
+          ) : (
+            <>
+              <svg className="w-6 h-6" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              START WITH GOOGLE
+            </>
+          )}
+        </motion.button>
+
+        <p className="mt-6 text-xs text-gray-500 font-mono">
+          SECURE CONNECTION ENCRYPTED <ShieldCheck size={12} className="inline ml-1" />
+        </p>
+      </div>
     </div>
   );
 }
