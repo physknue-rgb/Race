@@ -7,6 +7,8 @@ import { Play, Pause, Zap, ShieldAlert, Award } from 'lucide-react';
 import { useAudioStore } from '@/store/useAudioStore';
 import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
+import MorningBriefing from '@/components/MorningBriefing';
+import { useTerritoryStore } from '@/store/useTerritoryStore';
 
 // Lazy Load Map (SSR Disable)
 const TacticalMap = dynamic(() => import('@/components/TacticalMap'), {
@@ -20,8 +22,13 @@ export default function RacePage() {
     // Store Connection
     const {
         isPlaying, rivalGap, userSpeed, distance, isUnderAttack,
-        startGame, stopGame, tick, enableRealGPS
+        startGame, stopGame, tick, enableRealGPS,
+        hackingProgress, isHacking, zoneLevel
     } = useRaceStore();
+
+    const {
+        checkTime, addScore, leadingFaction
+    } = useTerritoryStore();
 
     const { playEvent, setLanguage } = useAudioStore();
 
@@ -39,13 +46,22 @@ export default function RacePage() {
             // Fallback to Simulation Loop
             interval = setInterval(() => {
                 tick(0.1); // 100ms delta
+
+                // Demo: Add random score to factions to visualize bar moving
+                if (Math.random() > 0.8) {
+                    addScore(Math.random() > 0.5 ? 'NEON' : 'ROSE', 10);
+                }
             }, 100);
         }
 
+        // Time Check Loop
+        const timeCheck = setInterval(() => {
+            checkTime();
+        }, 60000); // Every minute
+
         return () => {
-            if (interval) {
-                clearInterval(interval);
-            }
+            if (interval) clearInterval(interval);
+            clearInterval(timeCheck);
             stopGame();
         };
     }, []);
@@ -175,6 +191,12 @@ export default function RacePage() {
                 </div>
             </div>
 
+            {/* 3. Bottom HUD (Above BottomNav) */}
+            <div className="pb-[calc(5rem+env(safe-area-inset-bottom))] px-6 pointer-events-auto flex items-end justify-between bg-gradient-to-t from-black/80 to-transparent">
+                {/* ... existing hud ... */}
+            </div>
+
+            <MorningBriefing />
             <BottomNav />
         </div>
     );

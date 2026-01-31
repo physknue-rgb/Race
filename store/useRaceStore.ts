@@ -41,6 +41,11 @@ interface RaceState {
     enableRealGPS: () => void;
     updateRealPosition: (lat: number, lng: number, speed: number | null) => void;
     syncRemoteRunners: (runners: RemoteRunner[]) => void;
+
+    // Conquest State
+    hackingProgress: number;
+    isHacking: boolean;
+    zoneLevel: 1 | 2 | 3;
 }
 
 // Helper: Calculate distance between coords (Haversine approx for short dist)
@@ -81,9 +86,14 @@ export const useRaceStore = create<RaceState>((set, get) => ({
     isRealMode: false,
     activeRunners: [],
 
+    // Conquest Init
+    hackingProgress: 0,
+    isHacking: false,
+    zoneLevel: 1,
+
     startGame: () => set({ isPlaying: true }),
     stopGame: () => {
-        set({ isPlaying: false, userSpeed: 0 });
+        set({ isPlaying: false, userSpeed: 0, isHacking: false, hackingProgress: 0 });
         locationService.stopTracking();
     },
 
