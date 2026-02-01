@@ -10,6 +10,7 @@ interface UserProfile {
     photoURL: string | null;
     nickname?: string;
     team?: 'NEON' | 'ROSE';
+    playerClass?: 'HACKER' | 'GUARDIAN' | 'GHOST' | 'SCOUTER';
     // Social & Privacy
     crewId?: string;
     crewName?: string;
@@ -44,6 +45,7 @@ interface AuthState {
     toggleGhostMode: () => Promise<void>;
     createCrew: (crewName: string) => Promise<string>; // Returns Code
     joinCrew: (crewCode: string) => Promise<void>;
+    selectClass: (role: 'HACKER' | 'GUARDIAN' | 'GHOST' | 'SCOUTER') => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({

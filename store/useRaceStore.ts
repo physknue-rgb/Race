@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { locationService } from '@/services/LocationService';
 import { firebaseService, RemoteRunner } from '@/services/FirebaseService';
+import { useAuthStore } from './useAuthStore';
+import { useTerritoryStore } from './useTerritoryStore';
 
 interface Coordinate {
     lat: number;
@@ -223,5 +225,42 @@ export const useRaceStore = create<RaceState>((set, get) => ({
             inZone: inZone,
             justBreached: justBreached
         });
+
+        // --- TERRITORY LOGIC (Simulation) ---
+        // Only run if playing and inside zone
+        if (inZone && s.isHacking) {
+            const authUser = useAuthStore.getState().user;
+
+            // Base Rates
+            let progressDelta = 0.5; // % per tick
+            let scoreDelta = 10; // Points per tick
+
+            // 1. Hacker Bonus (1.5x)
+            if (authUser?.playerClass === 'HACKER') {
+                progressDelta *= 1.5;
+                scoreDelta *= 1.5;
+            }
+
+            // 2. Ghost Penalty (0.5x)
+            if (authUser?.privacySettings?.ghostMode) {
+                progressDelta *= 0.5;
+                scoreDelta *= 0.5;
+            }
+
+            const newProgress = Math.min(100, s.hackingProgress + progressDelta);
+            set({ hackingProgress: newProgress });
+
+            // Add Score to Territory Store
+            if (authUser?.team) {
+                useTerritoryStore.getState().addScore(authUser.team, scoreDelta);
+            }
+
+            // Capture?
+            if (newProgress >= 100) {
+                console.log("ZONE CAPTURED!");
+                set({ hackingProgress: 0, isHacking: false });
+                // Trigger Victory Event (TODO)
+            }
+        }
     }
 }));
