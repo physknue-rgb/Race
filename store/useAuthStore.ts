@@ -10,8 +10,22 @@ interface UserProfile {
     photoURL: string | null;
     nickname?: string;
     team?: 'NEON' | 'ROSE';
+    // Social & Privacy
+    crewId?: string;
+    crewName?: string;
+    privacySettings: {
+        ghostMode: boolean; // Hide from public
+        allowSearch: boolean; // Allow ID search
+        safeZoneRadius: number; // 0, 100m, 500m (Hide at Home/Office)
+    };
     onboardingComplete: boolean;
 }
+
+const DEFAULT_PRIVACY = {
+    ghostMode: false,
+    allowSearch: true,
+    safeZoneRadius: 0
+};
 
 interface AuthState {
     user: UserProfile | null;
@@ -25,6 +39,11 @@ interface AuthState {
     logout: () => Promise<void>;
     checkSession: () => void;
     updateProfile: (nickname: string, team: 'NEON' | 'ROSE') => Promise<void>;
+
+    // New Actions
+    toggleGhostMode: () => Promise<void>;
+    createCrew: (crewName: string) => Promise<string>; // Returns Code
+    joinCrew: (crewCode: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -52,6 +71,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                         photoURL: firebaseUser.photoURL,
                         nickname: profileData.nickname,
                         team: profileData.team,
+                        crewId: profileData.crewId,
+                        crewName: profileData.crewName,
+                        privacySettings: profileData.privacySettings || DEFAULT_PRIVACY,
                         onboardingComplete: !!profileData.onboardingComplete
                     },
                     isLoading: false
@@ -127,5 +149,75 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             console.error("Update Profile Failed", error);
             set({ error: error.message });
         }
+        set({
+            user: { ...user, nickname, team, onboardingComplete: true }
+        });
+    } catch(error: any) {
+        console.error("Update Profile Failed", error);
+        set({ error: error.message });
+    }
+},
+
+    toggleGhostMode: async () => {
+        const { user } = get();
+        if (!user) return;
+
+        const newMode = !user.privacySettings?.ghostMode;
+
+        // Optimistic Update
+        const updatedUser = {
+            ...user,
+            privacySettings: {
+                ...user.privacySettings || DEFAULT_PRIVACY,
+                ghostMode: newMode
+            }
+        };
+
+        set({ user: updatedUser });
+
+        // Sync
+        try {
+            await setDoc(doc(db, 'users', user.uid), {
+                privacySettings: { ghostMode: newMode }
+            }, { merge: true });
+        } catch (e) {
+            console.error("Privacy Sync Failed", e);
+        }
+    },
+
+    createCrew: async (crewName: string) => {
+        // Mock Implementation for Prototype
+        const { user } = get();
+        if (!user) return "ERROR";
+
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        set({
+            user: { ...user, crewId: code, crewName: crewName }
+        });
+
+        await setDoc(doc(db, 'users', user.uid), {
+            crewId: code,
+            crewName: crewName
+        }, { merge: true });
+
+        return code;
+    },
+
+    joinCrew: async (code: string) => {
+        const { user } = get();
+        if (!user) return;
+
+        // In real app, check if crew exists. Mock: Just join.
+        const mockName = "Crew " + code;
+
+        set({
+            user: { ...user, crewId: code, crewName: mockName }
+        });
+
+        await setDoc(doc(db, 'users', user.uid), {
+            crewId: code,
+            crewName: mockName
+        }, { merge: true });
     }
 }));
